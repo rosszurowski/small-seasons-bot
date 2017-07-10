@@ -2,6 +2,9 @@
   "name": "sekki-bot",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "dotenv": "^4.0.0",
     "node-schedule": "^1.2.3",
