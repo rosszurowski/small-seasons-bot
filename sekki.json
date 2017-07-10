@@ -1,0 +1,170 @@
+[
+  {
+    "id": "risshun",
+    "title": "Start of spring",
+    "startDate": "02-04",
+    "description": "Fish appear in icy ponds and the bush warblers start singing in the mountains.",
+    "emoji": "🐟"
+  },
+  {
+    "id": "usui",
+    "title": "Rain waters",
+    "startDate": "02-18",
+    "description": "Snow melts away, mist lingers in the air, and grasses begin to sprout. Trees release their first buds as the ground fills with water.",
+    "emoji": "🌧"
+  },
+  {
+    "id": "keichitsu",
+    "title": "Going-out of the insects",
+    "startDate": "03-06",
+    "description": "That time of year when the first bugs surface from their hibernation. Caterpillars start their transformation to butterflies.",
+    "emoji": "🦋"
+  },
+  {
+    "id": "shunbun",
+    "title": "Vernal equinox",
+    "startDate": "03-21",
+    "description": "When winter is gone and spring starts. Sparrows begin to nest in the trees. Cherry blossoms start to bloom. Heavy rains bring distant thunder.",
+    "emoji": "🌸"
+  },
+  {
+    "id": "seimei",
+    "title": "Clear and bright",
+    "startDate": "04-04",
+    "description": "Shortly after the equinox, when the swallows return home and the geese fly north. The first rainbows of the season appear.",
+    "emoji": "🌈"
+  },
+  {
+    "id": "koku",
+    "title": "Rain for harvests",
+    "startDate": "04-21",
+    "description": "Reeds sprout by the rivers and rice seedlings grow in the fields after the last frost has passed. Peonies bloom in the wilderness.",
+    "emoji": "🐦"
+  },
+  {
+    "id": "rikka",
+    "title": "Start of summer",
+    "startDate": "05-06",
+    "description": "The songs of summer begin. Frogs start their singing, and birds chirp in the forests. Worms surface from underground, bamboo shoots begin to sprout.",
+    "emoji": "🐸"
+  },
+  {
+    "id": "shoman",
+    "title": "Little blossoming",
+    "startDate": "05-21",
+    "description": "When flowers and plants start to come out. Silkworms start feasting on mulberry leaves, and the safflower workers start their picking. Wheat begins to ripen.",
+    "emoji": "🌺"
+  },
+  {
+    "id": "boshu",
+    "title": "Seeds and cereals",
+    "startDate": "06-05",
+    "description": "The time of year when people start to seed the soil. Praying mantises hatch. Rotten grass become home to fireflies. The plums become more yellow.",
+    "emoji": "🌱"
+  },
+  {
+    "id": "geshi",
+    "title": "Reaching summer",
+    "startDate": "06-21",
+    "description": "The longest days of the year. The sun reaches its highest point, accompanied by mist and rains. A sweet woodsy dryness hangs in the air. Irises bloom and crow-dippers start to sprout.",
+    "emoji": "☀️"
+  },
+  {
+    "id": "shousho",
+    "title": "Little heat",
+    "startDate": "07-07",
+    "description": "The summer heat begins. Warm winds blow, lotus' blossom, and young hawks are learning to fly.",
+    "emoji": "🏖"
+  },
+  {
+    "id": "taisho",
+    "title": "Big heat",
+    "startDate": "07-23",
+    "description": "Summer heat is at its strongest. The air is thick and humid and the trees are busy making seeds.",
+    "emoji": "🔥"
+  },
+  {
+    "id": "risshu",
+    "title": "Start of autumn",
+    "startDate": "08-08",
+    "description": "The first signs of autumn can be seen. Cooler winds blow, and thick fogs roll through the hills in the morning.",
+    "emoji": "💨"
+  },
+  {
+    "id": "shosho",
+    "title": "Lessening heat",
+    "startDate": "08-23",
+    "description": "The heat of summer has been forgotten. The rice has ripened and cotton flowers are in bloom.",
+    "emoji": "🌾"
+  },
+  {
+    "id": "hakuro",
+    "title": "White dew",
+    "startDate": "09-07",
+    "description": "When drops of dew can be seen on the grass. Swallows leave for the year, and the wagtails sing.",
+    "emoji": "💦"
+  },
+  {
+    "id": "shubun",
+    "title": "Autumnal equinox",
+    "startDate": "09-23",
+    "description": "Day and night are of equal length. Farmers drain their fields and insects hide underground.",
+    "emoji": "🐛"
+  },
+  {
+    "id": "kanro",
+    "title": "Cold dew",
+    "startDate": "10-08",
+    "description": "Temperatures begin dropping. The geese return for the winter. Crickets chirp for the last time in the year.",
+    "emoji": "🏏"
+  },
+  {
+    "id": "soko",
+    "title": "Frosting",
+    "startDate": "10-23",
+    "description": "The first frosts. Rains disappear as the maple leaves and ivy turn yellow.",
+    "emoji": "🍂"
+  },
+  {
+    "id": "ritto",
+    "title": "Start of winter",
+    "startDate": "11-08",
+    "description": "When the winter season starts. Land begins to freeze, rivers and streams shortly to follow.",
+    "emoji": "❄️"
+  },
+  {
+    "id": "shosetsu",
+    "title": "Little snow",
+    "startDate": "11-23",
+    "description": "Light snowfall appears. Northern winds have blown the last leaves from the trees.",
+    "emoji": "🌨"
+  },
+  {
+    "id": "taisetsu",
+    "title": "Big snow",
+    "startDate": "12-08",
+    "description": "The cold sets in. Bears are hibernating in their dens, and the salmon have swam upstream. Nature is quiet.",
+    "emoji": "💤"
+  },
+  {
+    "id": "toji",
+    "title": "Winter solstice",
+    "startDate": "12-22",
+    "description": "When days are the shortest in the whole year. Deer in the mountains shed their antlers, and wheat sprouts rest underneath the snow.",
+    "emoji": "🌑"
+  },
+  {
+    "id": "shokan",
+    "title": "Little cold",
+    "startDate": "01-06",
+    "description": "Winter chills start as the temperature quickly drops. Pheasant calls can be heard in the forest",
+    "emoji": "🌡"
+  },
+  {
+    "id": "daikan",
+    "title": "Big cold",
+    "startDate": "01-20",
+    "description": "Temperatures drop low and the chill deepens. Ice thickens on the streams. Hens huddle together and begin laying eggs.",
+    "emoji": "🐔"
+  }
+]
