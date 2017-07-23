@@ -2,11 +2,13 @@
   "name": "sekki-bot",
   "version": "1.0.0",
   "private": true,
+  "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "micro"
   },
   "dependencies": {
     "dotenv": "^4.0.0",
+    "micro": "^7.3.3",
     "node-schedule": "^1.2.3",
     "twit": "^2.2.9"
   },

@@ -1,6 +1,7 @@
 
 require('dotenv').config();
 
+const micro = require('micro');
 const schedule = require('node-schedule');
 const twitter = require('./lib/twitter');
 const sekkis = require('./sekki.json');
@@ -26,3 +27,10 @@ const jobs = instructions.map(instruction => schedule.scheduleJob(
 ));
 
 // Keep alive...
+module.exports = () => `
+  <html lang="en">
+    <body>
+      <p>Go follow <a href="https://twitter.com/smallseasonsbot">@smallseasonsbot</a>!  </p>
+    </body>
+  </html>
+`;
