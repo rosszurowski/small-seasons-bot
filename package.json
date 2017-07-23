@@ -4,7 +4,8 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "micro"
+    "start": "micro",
+    "lint": "eslint ."
   },
   "dependencies": {
     "dotenv": "^4.0.0",
@@ -19,5 +20,12 @@
       "TWITTER_ACCESS_TOKEN",
       "TWITTER_ACCESS_TOKEN_SECRET"
     ]
+  },
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "3.19.0",
+    "eslint-config-watsi": "^1.0.15",
+    "eslint-import-resolver-babel-module": "^3.0.0",
+    "eslint-plugin-import": "^2.7.0"
   }
 }
