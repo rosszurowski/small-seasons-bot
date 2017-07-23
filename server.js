@@ -11,7 +11,7 @@ const parseStartDate = str => {
   return { month, day };
 }
 
-const toCronFormat = ({ month, day }) => `1 8 ${day} ${month} *`;
+const toCronFormat = ({ month, day }) => `5 20 ${day} ${month} *`;
 
 const instructions = sekkis.map(sekki => ({
   id: sekki.id,
