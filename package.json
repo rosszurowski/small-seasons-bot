@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "micro",
+    "deploy": "now",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -14,12 +15,12 @@
     "twit": "^2.2.9"
   },
   "now": {
-    "env": [
-      "TWITTER_CONSUMER_KEY",
-      "TWITTER_CONSUMER_SECRET",
-      "TWITTER_ACCESS_TOKEN",
-      "TWITTER_ACCESS_TOKEN_SECRET"
-    ]
+    "env": {
+      "TWITTER_CONSUMER_KEY": "@twitter-consumer-key",
+      "TWITTER_CONSUMER_SECRET": "@twitter-consumer-secret",
+      "TWITTER_ACCESS_TOKEN": "@twitter-access-token",
+      "TWITTER_ACCESS_TOKEN_SECRET": "@twitter-access-token-secret"
+    }
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
