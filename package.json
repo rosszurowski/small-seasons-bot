@@ -14,14 +14,6 @@
     "node-schedule": "^1.2.3",
     "twit": "^2.2.9"
   },
-  "now": {
-    "env": {
-      "TWITTER_CONSUMER_KEY": "@twitter-consumer-key",
-      "TWITTER_CONSUMER_SECRET": "@twitter-consumer-secret",
-      "TWITTER_ACCESS_TOKEN": "@twitter-access-token",
-      "TWITTER_ACCESS_TOKEN_SECRET": "@twitter-access-token-secret"
-    }
-  },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
     "eslint": "3.19.0",
