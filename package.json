@@ -5,8 +5,9 @@
   "main": "server.js",
   "scripts": {
     "start": "micro",
-    "deploy": "now",
-    "lint": "eslint ."
+    "deploy": "git push heroku master",
+    "format": "prettier --write '**/*.js'",
+    "lint": "xo"
   },
   "dependencies": {
     "dotenv": "^4.0.0",
@@ -15,10 +16,17 @@
     "twit": "^2.2.9"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "eslint": "3.19.0",
-    "eslint-config-watsi": "^1.0.15",
-    "eslint-import-resolver-babel-module": "^3.0.0",
-    "eslint-plugin-import": "^2.7.0"
+    "prettier": "^1.15.3",
+    "xo": "^0.23.0"
+  },
+  "xo": {
+    "space": true,
+    "prettier": true,
+    "rules": {
+      "camelcase": "off"
+    }
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }
