@@ -42,7 +42,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tweetableSeason, err := getTweetableSeason(client, seasons, time.Now().Add(time.Hour*-236))
+	tweetableSeason, err := getTweetableSeason(client, seasons, time.Now())
 	if err != nil {
 		log.Fatal(err)
 	}
