@@ -33,6 +33,11 @@ type Season struct {
 }
 
 func main() {
+	username := os.Getenv("TWITTER_USERNAME")
+	if username == "" {
+		log.Fatal("TWITTER_USERNAME is missing")
+	}
+
 	seasons, err := loadSeasons()
 	if err != nil {
 		log.Fatal(err)
@@ -42,7 +47,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tweetableSeason, err := getTweetableSeason(client, seasons, time.Now())
+	tweetableSeason, err := getTweetableSeason(client, username, seasons, time.Now())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +62,7 @@ func main() {
 		log.Fatalf("failed to post tweet: %v", err)
 	}
 
-	log.Printf("posted tweet! %s", tweet.IDStr)
+	log.Printf("posted tweet! https://twitter.com/%s/status/%s", username, tweet.IDStr)
 }
 
 // loadSeasons gets a list of seasons, with dates formatted for the current year.
@@ -114,14 +119,9 @@ func getTwitterClient() (*twitter.Client, error) {
 	return client, nil
 }
 
-func getTweetableSeason(client *twitter.Client, seasons []*Season, now time.Time) (*Season, error) {
-	twitterUsername := os.Getenv("TWITTER_USERNAME")
-	if twitterUsername == "" {
-		return nil, errors.New("TWITTER_USERNAME is missing")
-	}
-
+func getTweetableSeason(client *twitter.Client, username string, seasons []*Season, now time.Time) (*Season, error) {
 	latestTweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
-		ScreenName: twitterUsername,
+		ScreenName: username,
 		Count:      2,
 	})
 	if err != nil {
@@ -149,7 +149,6 @@ func getTweetableSeason(client *twitter.Client, seasons []*Season, now time.Time
 			}
 			y1, m1, d1 := t.Date()
 			y2, m2, d2 := s.Date.Date()
-			fmt.Println(t, s.Date, t.Sub(s.Date))
 			if y1 == y2 && m1 == m2 && d1 == d2 {
 				// If we've already tweeted today, don't tweet again.
 				alreadyTweeted = true
