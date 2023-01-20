@@ -2,11 +2,12 @@
 package mastodon
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -77,12 +78,10 @@ type PostStatusParams struct {
 
 // PostStatus posts a new status to the authenticated user's account.
 func (c *Client) PostStatus(ctx context.Context, params PostStatusParams) (*Status, error) {
-	b, err := json.Marshal(params)
-	if err != nil {
-		return nil, fmt.Errorf("marshalling params: %w", err)
-	}
-	body := bytes.NewReader(b)
-	req, err := http.NewRequestWithContext(ctx, "POST", c.baseURL+"/api/v1/statuses", body)
+	v := url.Values{}
+	v.Set("status", params.Status)
+	url := fmt.Sprintf("%s/api/v1/statuses?%s", c.baseURL, v.Encode())
+	req, err := http.NewRequestWithContext(ctx, "POST", url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("creating request: %w", err)
 	}
@@ -97,7 +96,11 @@ func (c *Client) PostStatus(ctx context.Context, params PostStatusParams) (*Stat
 		case http.StatusUnauthorized:
 			return nil, fmt.Errorf("unauthorized")
 		case http.StatusUnprocessableEntity:
-			return nil, fmt.Errorf("unprocessable entity")
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return nil, fmt.Errorf("reading response body: %w", err)
+			}
+			return nil, fmt.Errorf("unprocessable entity: %s", string(b))
 		}
 		return nil, fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
