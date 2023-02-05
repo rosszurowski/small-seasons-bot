@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -19,6 +20,13 @@ import (
 
 //go:embed sekki.json
 var sekkiJSON string
+
+var dev = flag.Bool("dev", false, "run in dev mode")
+
+var (
+	ErrAlreadyPosted = errors.New("already posted")
+	ErrNoSeason      = errors.New("no season to post")
+)
 
 type rawSeason struct {
 	ID          string
@@ -35,6 +43,8 @@ type Season struct {
 }
 
 func main() {
+	flag.Parse()
+
 	seasons, err := loadSeasons()
 	if err != nil {
 		log.Fatal(err)
@@ -54,14 +64,14 @@ func main() {
 }
 
 // loadSeasons gets a list of seasons, with dates formatted for the current year.
-func loadSeasons() ([]*Season, error) {
+func loadSeasons() ([]Season, error) {
 	var rs []rawSeason
 	err := json.Unmarshal([]byte(sekkiJSON), &rs)
 	if err != nil {
 		return nil, fmt.Errorf("error loading sekki: %w", err)
 	}
 
-	var seasons []*Season
+	var seasons []Season
 	for _, s := range rs {
 		year := time.Now().Year()
 		hour := "16:02:00" // just so it's not at the beginning of the day
@@ -69,7 +79,7 @@ func loadSeasons() ([]*Season, error) {
 		if err != nil {
 			return nil, fmt.Errorf("error parsing date: %w", err)
 		}
-		season := &Season{
+		season := Season{
 			ID:      s.ID,
 			Date:    dateThisYear,
 			Content: fmt.Sprintf("%s. %s %s", s.Title, s.Description, s.Emoji),
@@ -79,14 +89,9 @@ func loadSeasons() ([]*Season, error) {
 	return seasons, nil
 }
 
-var (
-	ErrAlreadyPosted = errors.New("already posted")
-	ErrNoSeason      = errors.New("no season to post")
-)
-
 // getPostableSeason returns the season that should be posted, or an error if
 // there's nothing to post.
-func getPostableSeason(seasons []*Season, now time.Time, latestTimestamps []time.Time) (*Season, error) {
+func getPostableSeason(seasons []Season, now time.Time, latestTimestamps []time.Time) (Season, error) {
 	oneDayAgo := now.Add(time.Hour * -24)
 	oneDayFromNow := now.Add(time.Hour * 24)
 	for _, s := range seasons {
@@ -103,9 +108,12 @@ func getPostableSeason(seasons []*Season, now time.Time, latestTimestamps []time
 		for _, t := range latestTimestamps {
 			y1, m1, d1 := t.Date()
 			y2, m2, d2 := s.Date.Date()
-			if y1 == y2 && m1 == m2 && d1 == d2 {
-				// If we've already posted today, don't post again.
-				return nil, ErrAlreadyPosted
+			y3, m3, d3 := now.Date()
+			postedOnDate := y1 == y2 && m1 == m2 && d1 == d2
+			postedToday := y1 == y3 && m1 == m3 && d1 == d3
+			if postedOnDate || postedToday {
+				// If we've already posted on the date, don't post again.
+				return Season{}, ErrAlreadyPosted
 			}
 		}
 		if s.Date.Sub(now) < time.Hour {
@@ -113,10 +121,10 @@ func getPostableSeason(seasons []*Season, now time.Time, latestTimestamps []time
 			return s, nil
 		}
 	}
-	return nil, ErrNoSeason
+	return Season{}, ErrNoSeason
 }
 
-func postToMastodon(seasons []*Season, now time.Time) error {
+func postToMastodon(seasons []Season, now time.Time) error {
 	ctx := context.Background()
 	client, err := mastodon.NewClient(mastodon.Config{
 		BaseURL:     os.Getenv("MASTODON_BASE_URL"),
@@ -144,6 +152,10 @@ func postToMastodon(seasons []*Season, now time.Time) error {
 		}
 		return fmt.Errorf("getting postable season: %w", err)
 	}
+	if *dev {
+		log.Printf("mastodon: would post %s (skipping in dev mode)", season.ID)
+		return nil
+	}
 	log.Printf("mastodon: posting %s", season.ID)
 	status, err := client.PostStatus(ctx, mastodon.PostStatusParams{
 		Status: season.Content,
@@ -152,10 +164,11 @@ func postToMastodon(seasons []*Season, now time.Time) error {
 		return fmt.Errorf("posting to mastodon: %w", err)
 	}
 	log.Printf("mastodon: posted! %s", status.URL)
+
 	return nil
 }
 
-func postToTwitter(seasons []*Season, now time.Time) error {
+func postToTwitter(seasons []Season, now time.Time) error {
 	username := os.Getenv("TWITTER_USERNAME")
 	if username == "" {
 		log.Fatal("TWITTER_USERNAME is missing")
@@ -191,6 +204,10 @@ func postToTwitter(seasons []*Season, now time.Time) error {
 			return nil
 		}
 		return fmt.Errorf("getting postable season: %w", err)
+	}
+	if *dev {
+		log.Printf("twitter: would post %s (skipping in dev mode)", season.ID)
+		return nil
 	}
 	log.Printf("twitter: posting %s", season.ID)
 	tweet, _, err := client.Statuses.Update(season.Content, nil)
