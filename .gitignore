@@ -1,2 +1,4 @@
 # Ignore sensitive info
 .env
+
+/dist

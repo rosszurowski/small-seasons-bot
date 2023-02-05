@@ -2,6 +2,11 @@ dev: ## Run the app in dev mode
 	@go run . --dev
 .PHONY: dev
 
+build: dist/app ## Build the app
+
+dist/app: go.mod go.sum sekki.json $(shell find . -type f -name '*.go')
+	@go build -tags netgo -ldflags '-s -w' -o $@
+
 format: ## Format the code
 	@go fmt ./...
 .PHONY: format
