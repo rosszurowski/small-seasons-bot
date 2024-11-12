@@ -53,11 +53,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mastodonA := mastodonConfig{
-		BaseURL:     os.Getenv("MASTODON_A_BASE_URL"),
-		AccessToken: os.Getenv("MASTODON_A_ACCESS_TOKEN"),
-	}
-	mastodonB := mastodonConfig{
+	mastodon := mastodonConfig{
 		BaseURL:     os.Getenv("MASTODON_B_BASE_URL"),
 		AccessToken: os.Getenv("MASTODON_B_ACCESS_TOKEN"),
 	}
@@ -65,10 +61,10 @@ func main() {
 	now := time.Now()
 	var wg errgroup.Group
 	wg.Go(func() error {
-		return postToMastodon(mastodonA, seasons, now)
-	})
-	wg.Go(func() error {
-		return postToMastodon(mastodonB, seasons, now)
+		if err := postToMastodon(mastodon, seasons, now); err != nil {
+			return fmt.Errorf("posting to mastodon: %w", err)
+		}
+		return nil
 	})
 	if err := wg.Wait(); err != nil {
 		log.Fatal(err)
