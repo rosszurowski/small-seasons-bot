@@ -11,8 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/dghubble/go-twitter/twitter"
-	"github.com/dghubble/oauth1"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rosszurowski/small-seasons-bot/mastodon"
 	"golang.org/x/sync/errgroup"
@@ -42,6 +40,11 @@ type Season struct {
 	Content string    // raw post text
 }
 
+type mastodonConfig struct {
+	BaseURL     string
+	AccessToken string
+}
+
 func main() {
 	flag.Parse()
 
@@ -50,13 +53,22 @@ func main() {
 		log.Fatal(err)
 	}
 
+	mastodonA := mastodonConfig{
+		BaseURL:     os.Getenv("MASTODON_A_BASE_URL"),
+		AccessToken: os.Getenv("MASTODON_A_ACCESS_TOKEN"),
+	}
+	mastodonB := mastodonConfig{
+		BaseURL:     os.Getenv("MASTODON_B_BASE_URL"),
+		AccessToken: os.Getenv("MASTODON_B_ACCESS_TOKEN"),
+	}
+
 	now := time.Now()
 	var wg errgroup.Group
 	wg.Go(func() error {
-		return postToTwitter(seasons, now)
+		return postToMastodon(mastodonA, seasons, now)
 	})
 	wg.Go(func() error {
-		return postToMastodon(seasons, now)
+		return postToMastodon(mastodonB, seasons, now)
 	})
 	if err := wg.Wait(); err != nil {
 		log.Fatal(err)
@@ -124,11 +136,11 @@ func getPostableSeason(seasons []Season, now time.Time, latestTimestamps []time.
 	return Season{}, ErrNoSeason
 }
 
-func postToMastodon(seasons []Season, now time.Time) error {
+func postToMastodon(conf mastodonConfig, seasons []Season, now time.Time) error {
 	ctx := context.Background()
 	client, err := mastodon.NewClient(mastodon.Config{
-		BaseURL:     os.Getenv("MASTODON_BASE_URL"),
-		AccessToken: os.Getenv("MASTODON_ACCESS_TOKEN"),
+		BaseURL:     conf.BaseURL,
+		AccessToken: conf.AccessToken,
 	})
 	if err != nil {
 		return fmt.Errorf("creating mastodon client: %w", err)
@@ -168,77 +180,77 @@ func postToMastodon(seasons []Season, now time.Time) error {
 	return nil
 }
 
-func postToTwitter(seasons []Season, now time.Time) error {
-	username := os.Getenv("TWITTER_USERNAME")
-	if username == "" {
-		log.Fatal("TWITTER_USERNAME is missing")
-	}
-	client, err := getTwitterClient()
-	if err != nil {
-		return fmt.Errorf("getting twitter client: %w", err)
-	}
-	tweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
-		// TODO: we might not need to pass in a username here. The API may default
-		// to showing the current user's timeline.
-		ScreenName: username,
-		Count:      2,
-	})
-	if err != nil {
-		return fmt.Errorf("getting latest tweets: %w", err)
-	}
-	var timestamps []time.Time
-	for _, tweet := range tweets {
-		t, err := tweet.CreatedAtTime()
-		if err != nil {
-			return fmt.Errorf("getting tweet timestamp: %w", err)
-		}
-		timestamps = append(timestamps, t)
-	}
-	season, err := getPostableSeason(seasons, now, timestamps)
-	if err != nil {
-		if errors.Is(err, ErrAlreadyPosted) {
-			log.Println("twitter: already posted today")
-			return nil
-		} else if errors.Is(err, ErrNoSeason) {
-			log.Println("twitter: no season to post")
-			return nil
-		}
-		return fmt.Errorf("getting postable season: %w", err)
-	}
-	if *dev {
-		log.Printf("twitter: would post %s (skipping in dev mode)", season.ID)
-		return nil
-	}
-	log.Printf("twitter: posting %s", season.ID)
-	tweet, _, err := client.Statuses.Update(season.Content, nil)
-	if err != nil {
-		return fmt.Errorf("posting tweet: %w", err)
-	}
-	log.Printf("twitter: posted! https://twitter.com/%s/status/%s", username, tweet.IDStr)
-	return nil
-}
+// func postToTwitter(seasons []Season, now time.Time) error {
+// 	username := os.Getenv("TWITTER_USERNAME")
+// 	if username == "" {
+// 		log.Fatal("TWITTER_USERNAME is missing")
+// 	}
+// 	client, err := getTwitterClient()
+// 	if err != nil {
+// 		return fmt.Errorf("getting twitter client: %w", err)
+// 	}
+// 	tweets, _, err := client.Timelines.UserTimeline(&twitter.UserTimelineParams{
+// 		// TODO: we might not need to pass in a username here. The API may default
+// 		// to showing the current user's timeline.
+// 		ScreenName: username,
+// 		Count:      2,
+// 	})
+// 	if err != nil {
+// 		return fmt.Errorf("getting latest tweets: %w", err)
+// 	}
+// 	var timestamps []time.Time
+// 	for _, tweet := range tweets {
+// 		t, err := tweet.CreatedAtTime()
+// 		if err != nil {
+// 			return fmt.Errorf("getting tweet timestamp: %w", err)
+// 		}
+// 		timestamps = append(timestamps, t)
+// 	}
+// 	season, err := getPostableSeason(seasons, now, timestamps)
+// 	if err != nil {
+// 		if errors.Is(err, ErrAlreadyPosted) {
+// 			log.Println("twitter: already posted today")
+// 			return nil
+// 		} else if errors.Is(err, ErrNoSeason) {
+// 			log.Println("twitter: no season to post")
+// 			return nil
+// 		}
+// 		return fmt.Errorf("getting postable season: %w", err)
+// 	}
+// 	if *dev {
+// 		log.Printf("twitter: would post %s (skipping in dev mode)", season.ID)
+// 		return nil
+// 	}
+// 	log.Printf("twitter: posting %s", season.ID)
+// 	tweet, _, err := client.Statuses.Update(season.Content, nil)
+// 	if err != nil {
+// 		return fmt.Errorf("posting tweet: %w", err)
+// 	}
+// 	log.Printf("twitter: posted! https://twitter.com/%s/status/%s", username, tweet.IDStr)
+// 	return nil
+// }
 
-func getTwitterClient() (*twitter.Client, error) {
-	consumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
-	if consumerKey == "" {
-		return nil, errors.New("TWITTER_CONSUMER_KEY is missing")
-	}
-	consumerSecret := os.Getenv("TWITTER_CONSUMER_SECRET")
-	if consumerSecret == "" {
-		return nil, errors.New("TWITTER_CONSUMER_SECRET is missing")
-	}
-	accessToken := os.Getenv("TWITTER_ACCESS_TOKEN")
-	if accessToken == "" {
-		return nil, errors.New("TWITTER_ACCESS_TOKEN is missing")
-	}
-	accessSecret := os.Getenv("TWITTER_ACCESS_SECRET")
-	if accessSecret == "" {
-		return nil, errors.New("TWITTER_ACCESS_SECRET is missing")
-	}
+// func getTwitterClient() (*twitter.Client, error) {
+// 	consumerKey := os.Getenv("TWITTER_CONSUMER_KEY")
+// 	if consumerKey == "" {
+// 		return nil, errors.New("TWITTER_CONSUMER_KEY is missing")
+// 	}
+// 	consumerSecret := os.Getenv("TWITTER_CONSUMER_SECRET")
+// 	if consumerSecret == "" {
+// 		return nil, errors.New("TWITTER_CONSUMER_SECRET is missing")
+// 	}
+// 	accessToken := os.Getenv("TWITTER_ACCESS_TOKEN")
+// 	if accessToken == "" {
+// 		return nil, errors.New("TWITTER_ACCESS_TOKEN is missing")
+// 	}
+// 	accessSecret := os.Getenv("TWITTER_ACCESS_SECRET")
+// 	if accessSecret == "" {
+// 		return nil, errors.New("TWITTER_ACCESS_SECRET is missing")
+// 	}
 
-	config := oauth1.NewConfig(consumerKey, consumerSecret)
-	token := oauth1.NewToken(accessToken, accessSecret)
-	httpClient := config.Client(context.Background(), token)
-	client := twitter.NewClient(httpClient)
-	return client, nil
-}
+// 	config := oauth1.NewConfig(consumerKey, consumerSecret)
+// 	token := oauth1.NewToken(accessToken, accessSecret)
+// 	httpClient := config.Client(context.Background(), token)
+// 	client := twitter.NewClient(httpClient)
+// 	return client, nil
+// }
