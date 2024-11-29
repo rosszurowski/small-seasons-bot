@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/rosszurowski/small-seasons-bot/bsky"
 	"github.com/rosszurowski/small-seasons-bot/mastodon"
 	"golang.org/x/sync/errgroup"
 )
@@ -40,11 +41,6 @@ type Season struct {
 	Content string    // raw post text
 }
 
-type mastodonConfig struct {
-	BaseURL     string
-	AccessToken string
-}
-
 func main() {
 	flag.Parse()
 
@@ -53,16 +49,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	mastodon := mastodonConfig{
-		BaseURL:     os.Getenv("MASTODON_B_BASE_URL"),
-		AccessToken: os.Getenv("MASTODON_B_ACCESS_TOKEN"),
-	}
-
 	now := time.Now()
 	var wg errgroup.Group
 	wg.Go(func() error {
-		if err := postToMastodon(mastodon, seasons, now); err != nil {
+		client, err := mastodon.NewClient(mastodon.Config{
+			BaseURL:     os.Getenv("MASTODON_B_BASE_URL"),
+			AccessToken: os.Getenv("MASTODON_B_ACCESS_TOKEN"),
+		})
+		if err != nil {
+			return fmt.Errorf("creating mastodon client: %w", err)
+		}
+		if err := postToMastodon(context.Background(), client, seasons, now); err != nil {
 			return fmt.Errorf("posting to mastodon: %w", err)
+		}
+		return nil
+	})
+	wg.Go(func() error {
+		ctx := context.Background()
+		client, err := bsky.NewClient(ctx, os.Getenv("BSKY_HANDLE"), os.Getenv("BSKY_API_KEY"))
+		if err != nil {
+			return fmt.Errorf("creating bsky client: %w", err)
+		}
+		if err := postToBsky(context.Background(), client, seasons, now); err != nil {
+			return fmt.Errorf("posting to bsky: %w", err)
 		}
 		return nil
 	})
@@ -132,15 +141,46 @@ func getPostableSeason(seasons []Season, now time.Time, latestTimestamps []time.
 	return Season{}, ErrNoSeason
 }
 
-func postToMastodon(conf mastodonConfig, seasons []Season, now time.Time) error {
-	ctx := context.Background()
-	client, err := mastodon.NewClient(mastodon.Config{
-		BaseURL:     conf.BaseURL,
-		AccessToken: conf.AccessToken,
-	})
+func postToBsky(ctx context.Context, client *bsky.Client, seasons []Season, now time.Time) error {
+	posts, err := client.GetPosts(ctx)
 	if err != nil {
-		return fmt.Errorf("creating mastodon client: %w", err)
+		return fmt.Errorf("getting posts: %w", err)
 	}
+	var timestamps []time.Time
+	for _, post := range posts {
+		fmt.Println("found posts", post.CID, post.AuthorDid, post.AuthorHandle, post.Created)
+		timestamps = append(timestamps, post.Created)
+	}
+	season, err := getPostableSeason(seasons, now, timestamps)
+	if err != nil {
+		if errors.Is(err, ErrAlreadyPosted) {
+			log.Println("bsky: already posted today")
+			return nil
+		} else if errors.Is(err, ErrNoSeason) {
+			log.Println("bsky: no season to post")
+			return nil
+		}
+		return fmt.Errorf("getting postable season: %w", err)
+	}
+	if *dev {
+		log.Printf("bsky: would post %s (skipping in dev mode)", season.ID)
+		return nil
+	}
+	log.Printf("bsky: posting %s", season.ID)
+	post, err := bsky.NewPostBuilder().
+		AddText(season.Content).
+		Build()
+	if err != nil {
+		return fmt.Errorf("building post: %w", err)
+	}
+	_, err = client.PostToFeed(ctx, post)
+	if err != nil {
+		return fmt.Errorf("posting to bsky: %w", err)
+	}
+	return nil
+}
+
+func postToMastodon(ctx context.Context, client *mastodon.Client, seasons []Season, now time.Time) error {
 	latest, err := client.UserTimeline(ctx)
 	if err != nil {
 		return fmt.Errorf("getting latest toots: %w", err)
