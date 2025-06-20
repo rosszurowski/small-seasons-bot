@@ -52,9 +52,20 @@ func main() {
 	now := time.Now()
 	var wg errgroup.Group
 	wg.Go(func() error {
+		baseURL := os.Getenv("MASTODON_BASE_URL")
+		if baseURL == "" {
+			log.Println("No MASTODON_BASE_URL, skipping…")
+			return nil
+		}
+		accessToken := os.Getenv("MASTODON_ACCESS_TOKEN")
+		if accessToken == "" {
+			log.Println("No MASTODON_ACCESS_TOKEN, skipping…")
+			return nil
+		}
+
 		client, err := mastodon.NewClient(mastodon.Config{
-			BaseURL:     os.Getenv("MASTODON_BASE_URL"),
-			AccessToken: os.Getenv("MASTODON_ACCESS_TOKEN"),
+			BaseURL:     baseURL,
+			AccessToken: accessToken,
 		})
 		if err != nil {
 			return fmt.Errorf("creating mastodon client: %w", err)
@@ -65,8 +76,18 @@ func main() {
 		return nil
 	})
 	wg.Go(func() error {
+		handle := os.Getenv("BSKY_HANDLE")
+		if handle == "" {
+			log.Println("No BSKY_HANDLE, skipping…")
+			return nil
+		}
+		apiKey := os.Getenv("BSKY_API_KEY")
+		if apiKey == "" {
+			log.Println("No BSKY_API_KEY, skipping…")
+			return nil
+		}
 		ctx := context.Background()
-		client, err := bsky.NewClient(ctx, os.Getenv("BSKY_HANDLE"), os.Getenv("BSKY_API_KEY"))
+		client, err := bsky.NewClient(ctx, handle, apiKey)
 		if err != nil {
 			return fmt.Errorf("creating bsky client: %w", err)
 		}
@@ -148,7 +169,7 @@ func postToBsky(ctx context.Context, client *bsky.Client, seasons []Season, now 
 	}
 	var timestamps []time.Time
 	for _, post := range posts {
-		fmt.Println("found posts", post.CID, post.AuthorDid, post.AuthorHandle, post.Created)
+		log.Println("found posts", post.CID, post.AuthorDid, post.AuthorHandle, post.Created)
 		timestamps = append(timestamps, post.Created)
 	}
 	season, err := getPostableSeason(seasons, now, timestamps)
